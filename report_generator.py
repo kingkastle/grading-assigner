@@ -3,7 +3,6 @@ import pickle
 import json
 import config
 from datetime import datetime, timedelta, date
-from tabulate import tabulate
 import numpy as np 
 import matplotlib
 matplotlib.use('Agg')  
@@ -158,12 +157,12 @@ def generate_report(df_all):
     project_colors = dict([(projname,cmap(color)) for projname,color in zip(df_projects[u'project_name'].unique(),colors)])
     
     # Calculate general results:
-    general_table = tabulate([list(row) for row in df_summary.round(2).values], headers=list(df_summary.columns),tablefmt="pipe", numalign="center")
+    # general_table = tabulate([list(row) for row in df_summary.round(2).values], headers=list(df_summary.columns),tablefmt="pipe", numalign="center")
     
     # Calculate general results by project:
     start_date = df_general.index.min()
     end_date = df_general.index.max()
-    summary_table = tabulate([list(row) for row in df_results.round(2).values], headers=list(df_results.columns),tablefmt="pipe", numalign="center")
+    # summary_table = tabulate([list(row) for row in df_results.round(2).values], headers=list(df_results.columns),tablefmt="pipe", numalign="center")
     fig, axes = plt.subplots(nrows=2, ncols=1,figsize=(10,10))
     axes[0] = plot_monthly(df_general,axes[0],u'earnings',project_colors)
     axes[1] = plot_rating(df_all.copy(),axes[1],period)
@@ -172,7 +171,7 @@ def generate_report(df_all):
     fig.savefig(monthly_plot_path, bbox_inches='tight')
     plt.close()
     
-    monthly_table = tabulate([list(row) for row in df_projects.round(2).values], headers=list(df_projects.columns),tablefmt="pipe", numalign="center")
+    # monthly_table = tabulate([list(row) for row in df_projects.round(2).values], headers=list(df_projects.columns),tablefmt="pipe", numalign="center")
     
     file_text = general_text_body.format(start_date,end_date,summary_table,monthly_plot_path,monthly_table,general_table)
     project_names = df_projects['project_name'].unique()
@@ -185,8 +184,8 @@ def generate_project_report(df_all,project_names,project_colors,file_text):
     '''Generate general numbers and visualizations for the different projects'''
     for project_name in project_names:
         _,proj_results,proj_summary,_ = get_agg_results(df_all,proj_name=project_name)
-        proj_summary = tabulate([list(row) for row in proj_summary.iloc[:,1:].round(2).values], headers=list(proj_summary.iloc[:,1:].columns),tablefmt="pipe", numalign="center")
-        proj_table = tabulate([list(row) for row in proj_results.round(2).values], headers=list(proj_results.columns),tablefmt="pipe", numalign="center")
+        # proj_summary = tabulate([list(row) for row in proj_summary.iloc[:,1:].round(2).values], headers=list(proj_summary.iloc[:,1:].columns),tablefmt="pipe", numalign="center")
+        # proj_table = tabulate([list(row) for row in proj_results.round(2).values], headers=list(proj_results.columns),tablefmt="pipe", numalign="center")
         fig, axes = plt.subplots(nrows=2, ncols=1)
         axes[0] = plot_monthly(proj_results,axes[0],u'earnings',project_colors)
         axes[1] = plot_rating(df_all.copy(),axes[1],period,project_name=project_name)
