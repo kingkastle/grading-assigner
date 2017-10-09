@@ -358,7 +358,7 @@ def request_reviews(token, ids_queued=None):
                 # expire (1 hour)
                 logger.info('0-0-0-0-0-0-0-0-0-0- refreshing request 0-0-0-0-0-0-0')
                 current_request = refresh_request(current_request)
-                logger.info('Positions: {0}'.format(get_positions(ids_queued, current_request['id'])))
+                logger.info('Positions: {0}'.format(get_positions(current_request['id'])))
 
             else:
                 logger.info('Checking for new assignments')
@@ -367,7 +367,7 @@ def request_reviews(token, ids_queued=None):
                 url = GET_REQUEST_URL_TMPL.format(BASE_URL, current_request['id'])
                 get_req_resp = requests.get(url, headers=headers)
                 current_request = get_req_resp.json() if me_req_resp.status_code == 200 else None
-                positions = get_positions(ids_queued, current_request['id'])
+                positions = get_positions(current_request['id'])
                 if len(positions) == 0:
                     logger.info('Refreshing request!, no positions identified')
                     current_request = refresh_request(current_request)
