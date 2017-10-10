@@ -78,8 +78,18 @@ def alert_for_assignment(current_request, headers):
 
 
 def wait_for_assign_eligible():
+    error_counts = 0
     while True:
+        if error_counts == 10: break
         assigned_resp = requests.get(ASSIGNED_COUNT_URL, headers=headers)
+        try:
+            assigned_resp.json()
+        except:
+            error_counts += 1
+            print("Error in assigned response:")
+            print(assigned_resp)
+            time.sleep(30.0)
+            continue
         if assigned_resp.status_code == 404 or assigned_resp.json()['assigned_count'] < 2:
             break
         else:
@@ -415,4 +425,14 @@ if __name__ == "__main__":
     elif args.last:
         print(last_review_date(args.token))
     else:
-        request_reviews(args.token, args.ids_queued)
+        # request_reviews(args.token, args.ids_queued)
+        attempts = 0
+        while attempts < 10:
+            try:
+                request_reviews(args.token, args.ids_queued)
+            except requests.ConnectionError:
+                print "Connection Error!!! This is the attempt number: {0}".format(attempts)
+                attempts += 1
+                time.sleep(30)
+                pass
+
