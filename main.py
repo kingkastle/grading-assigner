@@ -116,7 +116,8 @@ def fetch_certified_pairs(ids_queued=None):
     logger.info("Requesting certifications...")
     me_resp = requests.get(ME_URL, headers=headers)
     me_resp.raise_for_status()
-	languages = me_resp.json()['mentor_languages']
+
+    languages = me_resp.json()['mentor_languages']
 
     certs_resp = requests.get(CERTS_URL, headers=headers)
     certs_resp.raise_for_status()
@@ -431,8 +432,8 @@ if __name__ == "__main__":
             try:
                 request_reviews(args.token, args.ids_queued)
             except requests.ConnectionError:
-                print "Connection Error!!! This is the attempt number: {0}".format(attempts)
+                print
+                "Connection Error!!! This is the attempt number: {0}".format(attempts)
                 attempts += 1
                 time.sleep(30)
                 pass
-
