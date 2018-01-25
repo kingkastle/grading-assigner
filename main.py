@@ -44,7 +44,7 @@ logging.basicConfig(format='|%(asctime)s| %(message)s')
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 
-current_date = datetime.now().strftime('%Y-%m-%d')
+current_date =(datetime.now() + timedelta(days=1)).strftime('%Y-%m-%d')
 headers = None
 
 
@@ -212,6 +212,32 @@ def get_positions(curr_request_id):
     return wait_request
 
 
+def get_ratings(token, end_date=current_date):
+    global headers
+    headers = {'Authorization': token, 'Content-Length': '0'}
+    start_date = (datetime.now() - timedelta(days=150)).strftime('%Y-%m-%d')
+    last_30_date = (datetime.now() - timedelta(days=150)).strftime('%Y-%m-%d')
+
+    # retrieve feedbacks:
+    FEEDBACK_URL_TMPL = '{0}/me/student_feedbacks?start_date={1}&end_date={2}.json'.format(BASE_URL, start_date,
+                                                                                           end_date)
+    fb_resp = requests.get(FEEDBACK_URL_TMPL, headers=headers)
+    fb_resp = fb_resp.json() if fb_resp.status_code == 200 else None
+
+    df_fb = pandas.read_json(json.dumps(fb_resp))
+    df_fb = df_fb.loc[:, [u'submission_id', u'rating', u'body', u'created_at']]
+    df_fb[u'created_at'] = pandas.to_datetime(df_fb[u'created_at'], format='%Y-%b-%d:%H:%M:%S.%f')
+
+    mean_rating_30_days = round(df_fb.loc[df_fb[u'created_at'] >= last_30_date, u'rating'].mean(), 3)
+
+    print("Last 30 days review: {0}".format(mean_rating_30_days))
+    df_fb.set_index(u'created_at', inplace=True)
+
+    return df_fb.groupby(pandas.TimeGrouper(freq='M')).mean().loc[:, u'rating']
+
+
+
+
 def retrieve_stats(token, start_date='2010-01-01', end_date=current_date):
     global headers
     headers = {'Authorization': token, 'Content-Length': '0'}
@@ -241,6 +267,7 @@ def retrieve_stats(token, start_date='2010-01-01', end_date=current_date):
 
     df_fb = pandas.read_json(json.dumps(fb_resp))
     df_fb = df_fb.loc[:, [u'submission_id', u'rating', u'body', u'created_at']]
+    df_fb[u'created_at'] = pandas.to_datetime(df_fb[u'created_at'], format='%Y-%b-%d:%H:%M:%S.%f')
 
     ## Merge both dataframes and do the required transformations to create plots and tables:
     df_all = dfproj.merge(df_fb, how='left', on=u'submission_id')
@@ -408,6 +435,7 @@ if __name__ == "__main__":
     # cmd_parser.add_argument('--stats', '-stats', action='store_true', help='Retrieve stats for all projects')
     cmd_parser.add_argument('-earns', '-e', action='store_true', help='Retrieve monthly earns')
     cmd_parser.add_argument('-last', '-l', action='store_true', help='Retrieve last project review date')
+    cmd_parser.add_argument('-ratings', '-r', action='store_true', help='Retrieve last avg ratings')
     args = cmd_parser.parse_args()
 
     if not args.token:
@@ -425,6 +453,8 @@ if __name__ == "__main__":
         print(retrieve_earns(args.token))
     elif args.last:
         print(last_review_date(args.token))
+    elif args.ratings:
+        print(get_ratings(args.token))
     else:
         # request_reviews(args.token, args.ids_queued)
         attempts = 0
